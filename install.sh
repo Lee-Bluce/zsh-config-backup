@@ -348,6 +348,8 @@ fi
 maybe mkdir -p "$TARGET_HOME/.config/omz-setup"
 if [[ $DRY_RUN -eq 0 ]]; then
   printf '%s\n' "$THEME_MODE" > "$TARGET_HOME/.config/omz-setup/mode"
+  # 清理历史功能留下的孤儿文件（个性签名已回滚）
+  rm -f "$TARGET_HOME/.config/omz-setup/time-prefix"
 fi
 chown_quiet "$TARGET_HOME/.config/omz-setup"
 if [[ $DRY_RUN -eq 1 ]]; then
