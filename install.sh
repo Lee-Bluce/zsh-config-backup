@@ -19,7 +19,7 @@
 # ==============================================================================
 set -euo pipefail
 
-VERSION="1.1.0"
+VERSION="1.2.0"
 
 # ------------------------------------------------------------------------------
 # 默认参数（可用环境变量或命令行覆盖）
@@ -30,6 +30,8 @@ TARGET_USER="${TARGET_USER:-}"
 TARGET_HOME="${TARGET_HOME:-}"
 ASSETS_DIR="${ASSETS_DIR:-}"
 THEME_MODE="simple"                            # simple | p10k
+TIME_PREFIX="${TIME_PREFIX:-}"                 # 时间前面的个性化签名
+[[ -n "$TIME_PREFIX" ]] || TIME_PREFIX="Azure'time"   # 默认值（含单引号，分开赋值避免解析坑）
 SKIP_CHSH=0
 SKIP_PACKAGES=0
 FORCE=0
@@ -71,6 +73,7 @@ omz-setup · 一键安装脚本 —— 在任意服务器安装最新版 Oh My Z
   --user U            为目标用户安装（默认：SUDO_USER，其次 root/当前用户）
   --home DIR          指定目标 HOME（测试或特殊环境用）
   --simple            Mac 风格两行提示符（默认，无需 Nerd Font，适合服务器）
+  --time-prefix TXT   时间前面的个性化签名（默认 Azure'time，留空则不显示）
   --with-p10k         安装 powerlevel10k + 你的 .p10k.zsh（同 Mac 观感）
   --base-url URL      在线模式下载配置包的地址，如 http://10.0.0.2:8000
   --github-mirror URL 国内加速前缀，如 https://ghfast.top/
@@ -98,6 +101,7 @@ while [[ $# -gt 0 ]]; do
     --github-mirror) GITHUB_MIRROR="${2:?--github-mirror 需要参数}"; shift 2 ;;
     --with-p10k)     THEME_MODE="p10k"; shift ;;
     --simple)        THEME_MODE="simple"; shift ;;
+    --time-prefix)   TIME_PREFIX="${2:?--time-prefix 需要参数}"; shift 2 ;;
     --skip-chsh)     SKIP_CHSH=1; shift ;;
     --skip-packages) SKIP_PACKAGES=1; shift ;;
     --force)         FORCE=1; shift ;;
@@ -348,6 +352,10 @@ fi
 maybe mkdir -p "$TARGET_HOME/.config/omz-setup"
 if [[ $DRY_RUN -eq 0 ]]; then
   printf '%s\n' "$THEME_MODE" > "$TARGET_HOME/.config/omz-setup/mode"
+  # 时间签名：已存在则不覆盖，尊重你手动改过的内容
+  if [[ ! -f "$TARGET_HOME/.config/omz-setup/time-prefix" ]]; then
+    printf '%s\n' "$TIME_PREFIX" > "$TARGET_HOME/.config/omz-setup/time-prefix"
+  fi
 fi
 chown_quiet "$TARGET_HOME/.config/omz-setup"
 if [[ $DRY_RUN -eq 1 ]]; then
@@ -432,6 +440,7 @@ ok "安装完成！oh-my-zsh $(git -C "$OMZ_DIR" describe --tags --always 2>/dev
 printf '%s\n' "  · 配置目录   : $OMZ_DIR"
 printf '%s\n' "  · 主配置     : $TARGET_HOME/.zshrc  (私有配置写 $TARGET_HOME/.zshrc.local)"
 printf '%s\n' "  · 主题模式   : $THEME_MODE$([[ "$THEME_MODE" == "simple" ]] && echo '  (Mac 风格两行提示符，无需 Nerd Font)')"
+printf '%s\n' "  · 时间签名   : ${TIME_PREFIX:-(无)}   （改 ~/.config/omz-setup/time-prefix 即可换）"
 printf '%s\n' "  · 立即生效   : exec zsh   或   重新登录"
 if [[ "$THEME_MODE" == "p10k" ]]; then
   printf '%s\n' "  · p10k 字体  : 本地终端需安装 MesloLGS NF，否则会显示方块"
