@@ -71,30 +71,11 @@ source "$ZSH/oh-my-zsh.sh"
 #    · p10k 模式      ：加载你的 .p10k.zsh，与 Mac 完全一致（含图标）
 #    · simple 模式    ：纯 zsh 复刻 Mac 上 p10k classic 的布局，无需 Nerd Font
 #
-#      ╭─ ~/Documents/Ai/tmpwork  git:(main)     ✔ Azure'time 13:55:42
+#      ╭─ ~/Documents/Ai/tmpwork  git:(main)          ✔ at 13:55:42
 #      ╰─❯
 # ------------------------------------------------------------------------------
-
-# 时间前面的个性化签名（默认 Azure'time）。
-# 优先级：环境变量 OMZ_SETUP_TIME_PREFIX > 文件 ~/.config/omz-setup/time-prefix > 下面这行默认值
-if [[ -z "${OMZ_SETUP_TIME_PREFIX+x}" ]]; then
-  if [[ -r "$HOME/.config/omz-setup/time-prefix" ]]; then
-    OMZ_SETUP_TIME_PREFIX="$(<"$HOME/.config/omz-setup/time-prefix")"
-  else
-    OMZ_SETUP_TIME_PREFIX="Azure'time"        # 默认签名（可写进 ~/.zshrc.local 覆盖）
-  fi
-fi
-
 if [[ "${_omz_use_p10k:-0}" -eq 1 && -f "$HOME/.p10k.zsh" ]]; then
   source "$HOME/.p10k.zsh"
-
-  # 让个性化签名在 p10k 模式下也生效（覆盖 .p10k.zsh 里的 TIME_PREFIX）
-  if [[ -n "${OMZ_SETUP_TIME_PREFIX:-}" ]]; then
-    typeset -g POWERLEVEL9K_TIME_PREFIX="${OMZ_SETUP_TIME_PREFIX//\%/%%} "
-  else
-    typeset -g POWERLEVEL9K_TIME_PREFIX=""
-  fi
-  (( $+functions[p10k] )) && p10k reload 2>/dev/null
 else
   # 只读 .git/HEAD 文件，不 fork git 进程，避免拖慢提示符
   _omz_git_head() {
@@ -145,16 +126,8 @@ else
       status_prompt='%F{160}✘%f '
     fi
 
-    # --- 右侧：状态 + 个性化签名 + HH:MM:SS ---
-    local sig="${OMZ_SETUP_TIME_PREFIX-}"
-    local sig_prompt="" sig_plain="" sig_w=0
-    if [[ -n "$sig" ]]; then
-      sig_prompt="%F{66}${sig//\%/%%}%f "
-      sig_plain="$sig "
-      sig_w=${(m)#sig_plain}
-    fi
-
-    local right_w=$(( ${(m)#status_plain} + sig_w + 8 ))
+    # --- 右侧：状态 + "at HH:MM:SS"（固定 13 列）---
+    local right_w=$(( ${(m)#status_plain} + 11 ))
     local cols=${COLUMNS:-80}
     local frame_w=3                   # "╭─ "
     local pad=$(( cols - 1 - frame_w - path_w - branch_w - right_w ))
@@ -169,7 +142,7 @@ else
     fi
     (( pad < 1 )) && pad=1
 
-    PROMPT="%F{242}╭─%f %F{31}%~%f${branch_prompt}${(l:pad:: :)}${status_prompt}${sig_prompt}%F{66}%D{%H:%M:%S}%f"$'\n'"%F{242}╰─%f %F{76}❯%f "
+    PROMPT="%F{242}╭─%f %F{31}%~%f${branch_prompt}${(l:pad:: :)}${status_prompt}%F{66}at %D{%H:%M:%S}%f"$'\n'"%F{242}╰─%f %F{76}❯%f "
   }
 
   autoload -Uz add-zsh-hook 2>/dev/null

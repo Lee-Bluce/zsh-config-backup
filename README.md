@@ -46,7 +46,6 @@ scp -r zsh-config-backup server:~ && ssh server 'bash ~/zsh-config-backup/instal
 | `--user U` | 目标用户（默认：`SUDO_USER`，其次 root / 当前用户） |
 | `--home DIR` | 指定目标 HOME（测试或特殊环境） |
 | `--simple` / `--with-p10k` | 主题模式（默认 `simple`） |
-| `--time-prefix TXT` | 时间前面的个性化签名（默认 `Azure'time`，留空则不显示） |
 | `--base-url URL` | 从静态服务器（非 GitHub）下载配置包的地址 |
 | `--github-mirror URL` | GitHub 加速前缀，如 `https://ghfast.top/` |
 | `--assets-dir DIR` | 指定资源目录（默认脚本旁 `files/`） |
@@ -88,34 +87,15 @@ zsh-config-backup/
 默认（`simple`）模式**用纯 zsh 复刻了 Mac 上 powerlevel10k classic 的布局**，两行、无图标、不需要 Nerd Font：
 
 ```
-╭─ ~/Documents/Ai/tmpwork  git:(main)                   ✔ Azure'time 13:55:42
+╭─ ~/Documents/Ai/tmpwork  git:(main)                              ✔ at 13:55:42
 ╰─❯ 
 ```
 
 - 第一行：`╭─` 边框 + **完整路径**（`~` 缩写，与 Mac 一致）+ git 分支（在仓库内才显示）
-- 右侧：上条命令状态（成功绿 `✔` / 失败红 `✘`）+ **个性化签名 + 系统时间**（贴右边缘自动对齐）
+- 右侧：上条命令状态（成功绿 `✔` / 失败红 `✘`）+ **系统时间**（`at HH:MM:SS`，贴右边缘自动对齐）
 - 第二行：`╰─❯` 命令输入行
 - 颜色沿用 Mac 配置：路径 `31`、边框 `242`、时间 `66`、提示符 `76`、状态 `70/160`
 - 中文路径按**显示宽度**计算（一个汉字算 2 列），窄终端会自动先舍弃 git 分支、再舍弃右侧信息，绝不换行错位
-
-### 换个时间签名（个性化）
-
-时间前面的签名默认是 `Azure'time`（p10k 原版是 `at `）。三种改法，任选一种：
-
-```bash
-# 方式 1：改配置文件（推荐，装完就有这个文件）
-echo "我的时钟" > ~/.config/omz-setup/time-prefix
-printf '' > ~/.config/omz-setup/time-prefix     # 留空 = 不显示签名
-
-# 方式 2：写进 ~/.zshrc.local（不会被安装脚本覆盖）
-echo 'OMZ_SETUP_TIME_PREFIX="Azure钟"' >> ~/.zshrc.local
-
-# 方式 3：安装时一次性指定
-curl -fsSL .../bootstrap.sh | bash -s -- --time-prefix "Azure'time"
-```
-
-签名长度（含中文宽度）会自动计入对齐计算；两种模式（`simple` / `p10k`）都生效。改完重开终端即可。
-
 
 ## 主题模式（关键设计）
 
