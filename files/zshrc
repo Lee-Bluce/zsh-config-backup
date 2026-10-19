@@ -67,10 +67,94 @@ plugins=(
 source "$ZSH/oh-my-zsh.sh"
 
 # ------------------------------------------------------------------------------
-# 5. 加载 p10k 外观配置（仅 p10k 模式）
+# 5. 提示符
+#    · p10k 模式      ：加载你的 .p10k.zsh，与 Mac 完全一致（含图标）
+#    · simple 模式    ：纯 zsh 复刻 Mac 上 p10k classic 的布局，无需 Nerd Font
+#
+#      ╭─ ~/Documents/Ai/tmpwork  git:(main)          ✔ at 13:55:42
+#      ╰─❯
 # ------------------------------------------------------------------------------
 if [[ "${_omz_use_p10k:-0}" -eq 1 && -f "$HOME/.p10k.zsh" ]]; then
   source "$HOME/.p10k.zsh"
+else
+  # 只读 .git/HEAD 文件，不 fork git 进程，避免拖慢提示符
+  _omz_git_head() {
+    local d="$PWD" g h=""
+    while :; do
+      if [[ -d "$d/.git" && -f "$d/.git/HEAD" ]]; then
+        h="$d/.git/HEAD"
+      elif [[ -f "$d/.git" ]]; then
+        g="$(<"$d/.git" 2>/dev/null)"; g="${g#gitdir: }"
+        [[ -n "$g" && -f "$g/HEAD" ]] && h="$g/HEAD"
+      fi
+      if [[ -n "$h" ]]; then
+        print -r -- "$(<"$h" 2>/dev/null)"
+        return
+      fi
+      [[ "$d" == "/" || "$d" == "." ]] && return
+      d="${d:h}"
+    done
+  }
+
+  _omz_prompt_precmd() {
+    local ret=$?                      # 必须第一行取值
+    emulate -L zsh
+
+    # --- 路径（完整路径，~ 缩写，与 Mac 一致）---
+    local path_text="${(%):-%~}"
+    local path_w=${(m)#path_text}
+
+    # --- git 分支 ---
+    local branch head branch_prompt="" branch_plain="" branch_w=0
+    head="$(_omz_git_head)"
+    if [[ -n "$head" ]]; then
+      branch="${head#ref: refs/heads/}"
+      [[ "$branch" == "$head" ]] && branch="${head[1,7]}"   # detached HEAD
+      branch="${branch//\%/%%}"
+      branch_plain=" git:($branch)"
+      branch_prompt=" %F{76}git:(%f%F{76}${branch}%F{76})%f"
+      branch_w=${(m)#branch_plain}
+    fi
+
+    # --- 状态标记：成功绿 ✔ / 失败红 ✘ ---
+    local status_plain status_prompt
+    if (( ret == 0 )); then
+      status_plain='✔ '
+      status_prompt='%F{70}✔%f '
+    else
+      status_plain='✘ '
+      status_prompt='%F{160}✘%f '
+    fi
+
+    # --- 右侧：状态 + "at HH:MM:SS"（固定 13 列）---
+    local right_w=$(( ${(m)#status_plain} + 11 ))
+    local cols=${COLUMNS:-80}
+    local frame_w=3                   # "╭─ "
+    local pad=$(( cols - 1 - frame_w - path_w - branch_w - right_w ))
+
+    if (( pad < 0 )); then            # 终端太窄：先舍弃 git 分支
+      branch_prompt=""; branch_w=0
+      pad=$(( cols - 1 - frame_w - path_w - right_w ))
+    fi
+    if (( pad < 0 )); then            # 仍然太窄：只留路径，不显示右侧信息
+      PROMPT="%F{242}╭─%f %F{31}%~%f"$'\n'"%F{242}╰─%f %F{76}❯%f "
+      return
+    fi
+    (( pad < 1 )) && pad=1
+
+    PROMPT="%F{242}╭─%f %F{31}%~%f${branch_prompt}${(l:pad:: :)}${status_prompt}%F{66}at %D{%H:%M:%S}%f"$'\n'"%F{242}╰─%f %F{76}❯%f "
+  }
+
+  autoload -Uz add-zsh-hook 2>/dev/null
+  if (( ${+functions[add-zsh-hook]} )); then
+    add-zsh-hook precmd _omz_prompt_precmd
+  else
+    precmd_functions+=(_omz_prompt_precmd)
+  fi
+  RPROMPT=""
+  PROMPT2="%F{242}%_%f %F{76}❯%f "
+  # 窗口大小变化时重绘，保证右侧时间仍然贴边
+  TRAPWINCH() { [[ -o zle ]] && zle reset-prompt }
 fi
 
 # ------------------------------------------------------------------------------

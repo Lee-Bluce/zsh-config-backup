@@ -82,15 +82,32 @@ zsh-config-backup/
 
 插件与主题列表、`unalias -m h`、Homebrew 环境变量等其余内容**按 Mac 原样保留**。
 
+## 提示符长什么样
+
+默认（`simple`）模式**用纯 zsh 复刻了 Mac 上 powerlevel10k classic 的布局**，两行、无图标、不需要 Nerd Font：
+
+```
+╭─ ~/Documents/Ai/tmpwork  git:(main)                              ✔ at 13:55:42
+╰─❯ 
+```
+
+- 第一行：`╭─` 边框 + **完整路径**（`~` 缩写，与 Mac 一致）+ git 分支（在仓库内才显示）
+- 右侧：上条命令状态（成功绿 `✔` / 失败红 `✘`）+ **系统时间**（`at HH:MM:SS`，贴右边缘自动对齐）
+- 第二行：`╰─❯` 命令输入行
+- 颜色沿用 Mac 配置：路径 `31`、边框 `242`、时间 `66`、提示符 `76`、状态 `70/160`
+- 中文路径按**显示宽度**计算（一个汉字算 2 列），窄终端会自动先舍弃 git 分支、再舍弃右侧信息，绝不换行错位
+
 ## 主题模式（关键设计）
 
 | 模式 | 用在哪 | 表现 |
 |---|---|---|
-| `simple`（默认） | 服务器 | oh-my-zsh 内置 `robbyrussell` 主题，**不需要 Nerd Font**，不会出现方块乱码 |
-| `p10k` | Mac / 有 Nerd Font 的终端 | 与 Mac 完全一致的 powerlevel10k 观感 |
+| `simple`（默认） | 服务器 | 纯 zsh 复刻上面的两行布局，**不需要 Nerd Font**，不会出现方块乱码 |
+| `p10k` | Mac / 有 Nerd Font 的终端 | 加载 `files/p10k.zsh`，与 Mac 100% 一致（含 Apple 图标、powerline 分隔符） |
 
 模式记在 `~/.config/omz-setup/mode`，由 `install.sh` 写入，`~/.zshrc` 读取决定。
-没有这个文件时（例如直接把 `files/zshrc` 拷到 Mac 上）会自动探测：装了 p10k 就用 p10k，否则用简洁主题。
+临时切换：`echo simple > ~/.config/omz-setup/mode`（或 `echo p10k > ...`）后重开终端。
+没有这个文件时（例如直接把 `files/zshrc` 拷到 Mac 上）会自动探测：装了 p10k 就用 p10k，否则用 `simple`。
+
 
 ## 怎么更新这份备份
 
@@ -131,7 +148,7 @@ bash uninstall.sh --restore-shell    # 默认 shell 改回 bash
 ## 常见问题
 
 **服务器上提示符出现方块/乱码？**
-说明装成了 `p10k` 模式但终端没有 Nerd Font。改回简洁模式：`echo simple > ~/.config/omz-setup/mode` 后重开终端；或在本地终端装 MesloLGS NF 字体。
+说明装成了 `p10k` 模式但终端没有 Nerd Font（p10k 模式会显示 Apple/企鹅图标和 powerline 分隔符）。改回默认模式即可：`echo simple > ~/.config/omz-setup/mode` 后重开终端；或在本地终端装 MesloLGS NF 字体。
 
 **`raw.githubusercontent.com` 打不开？**
 用镜像：`curl -fsSL ... | GITHUB_MIRROR=https://ghfast.top/ bash`。引导脚本本身也可以用加速地址拉取。
