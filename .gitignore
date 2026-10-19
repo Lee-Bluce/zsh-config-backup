@@ -1,0 +1,6 @@
+# 打包产物（GitHub 模式下不需要）
+dist/
+
+# 系统垃圾
+.DS_Store
+*.swp

@@ -1,0 +1,28 @@
+# ==============================================================================
+#  ~/.zshrc.local  ——  本机私有配置（不会被 install.sh 覆盖）
+# ------------------------------------------------------------------------------
+#  用法：把下面需要的行复制到 ~/.zshrc.local，按本机实际情况增删。
+#  这是从「本机 Mac 的 .zshrc」里摘出来的、带机器专属路径的部分，
+#  所以它们不适合写进通用配置，需要哪台机器就加到哪台机器上。
+# ==============================================================================
+
+# --- Antigravity IDE（仅本机 Mac 有）---
+if [[ -d "$HOME/.antigravity-ide/antigravity-ide/bin" ]]; then
+  export PATH="$HOME/.antigravity-ide/antigravity-ide/bin:$PATH"
+fi
+
+# --- Google Cloud SDK（注意按实际安装路径修改）---
+if [[ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]]; then
+  source "$HOME/google-cloud-sdk/path.zsh.inc"
+  [[ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]] && source "$HOME/google-cloud-sdk/completion.zsh.inc"
+fi
+
+# --- 其他常见本机专属项 ---
+# export PATH="$HOME/.opencode/bin:$PATH"     # 已在通用 .zshrc 里自动处理
+# export HOMEBREW_NO_ENV_HINTS=1              # 已在通用 .zshrc 里设置
+
+# --- 服务器上可能想加的东西（示例）---
+# alias ll='ls -alh --color=auto'
+# alias gs='git status -sb'
+# alias dc='docker compose'
+# export EDITOR=vim

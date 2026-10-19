@@ -1,0 +1,102 @@
+# ==============================================================================
+#  ~/.zshrc  ——  由 omz-setup 一键安装脚本部署（可移植版）
+# ------------------------------------------------------------------------------
+#  · 本文件会被 install.sh 更新覆盖，请不要直接在这里写私有配置。
+#  · 你的私有配置请写到 ~/.zshrc.local，它会在文件末尾自动加载。
+#  · 主题模式由 ~/.config/omz-setup/mode 决定：p10k | simple
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 0. 定位 oh-my-zsh
+# ------------------------------------------------------------------------------
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+_omz_custom_dir="${ZSH_CUSTOM:-$ZSH/custom}"
+
+# ------------------------------------------------------------------------------
+# 1. 语言环境（服务器 locale 经常缺失，做回退以免 zsh 反复告警）
+# ------------------------------------------------------------------------------
+if [[ -z "${LANG:-}" || "${LANG:-}" == "C" || "${LANG:-}" == "POSIX" ]]; then
+  if locale -a 2>/dev/null | grep -qiE '^en_US\.utf-?8$'; then
+    export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+  elif locale -a 2>/dev/null | grep -qiE '^C\.utf-?8$'; then
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+  fi
+fi
+
+# ------------------------------------------------------------------------------
+# 2. 选择主题
+#    · simple（服务器默认）：oh-my-zsh 内置简洁主题，无需 Nerd Font，不会出方块
+#    · p10k  （Mac 默认）  ：与本地 Mac 完全一致的观感
+# ------------------------------------------------------------------------------
+_omz_mode=""
+[[ -r "$HOME/.config/omz-setup/mode" ]] && _omz_mode="$(<"$HOME/.config/omz-setup/mode")"
+
+_omz_p10k_ready=0
+if [[ -f "$_omz_custom_dir/themes/powerlevel10k/powerlevel10k.zsh-theme" && -f "$HOME/.p10k.zsh" ]]; then
+  _omz_p10k_ready=1
+fi
+
+if [[ "$_omz_mode" == "p10k" || ( -z "$_omz_mode" && $_omz_p10k_ready -eq 1 ) ]]; then
+  # 2.1 Instant Prompt 必须放在最顶部，否则无效（仅 p10k 需要）
+  if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+  fi
+  # 彻底静音 Instant Prompt 的警告（防止任何后台输出干扰）
+  typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
+  ZSH_THEME="powerlevel10k/powerlevel10k"
+  _omz_use_p10k=1
+else
+  ZSH_THEME="${ZSH_THEME:-robbyrussell}"
+  _omz_use_p10k=0
+fi
+
+# ------------------------------------------------------------------------------
+# 3. 插件列表（由 install.sh 克隆到 $ZSH_CUSTOM/plugins）
+#    注意：zsh-syntax-highlighting 必须放在最后
+# ------------------------------------------------------------------------------
+plugins=(
+  git
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
+
+# ------------------------------------------------------------------------------
+# 4. 加载 Oh My Zsh（必须在主题和插件设置之后）
+# ------------------------------------------------------------------------------
+source "$ZSH/oh-my-zsh.sh"
+
+# ------------------------------------------------------------------------------
+# 5. 加载 p10k 外观配置（仅 p10k 模式）
+# ------------------------------------------------------------------------------
+if [[ "${_omz_use_p10k:-0}" -eq 1 && -f "$HOME/.p10k.zsh" ]]; then
+  source "$HOME/.p10k.zsh"
+fi
+
+# ------------------------------------------------------------------------------
+# 6. 杂项补丁
+# ------------------------------------------------------------------------------
+# 清理可能存在的旧 alias 冲突（历史遗留问题）
+unalias -m 'h' 2>/dev/null
+
+# Homebrew：只在 macOS 有意义，在 Linux 上设置也无害
+export HOMEBREW_NO_ENV_HINTS=1
+export HOMEBREW_NO_AUTO_UPDATE=1
+
+# ------------------------------------------------------------------------------
+# 7. 通用 PATH（存在才加，避免污染）
+# ------------------------------------------------------------------------------
+for _omz_dir in "$HOME/.local/bin" "$HOME/bin" "$HOME/.opencode/bin"; do
+  if [[ -d "$_omz_dir" && ":$PATH:" != *":$_omz_dir:"* ]]; then
+    export PATH="$_omz_dir:$PATH"
+  fi
+done
+unset _omz_dir
+
+# ------------------------------------------------------------------------------
+# 8. 本机私有配置（不会被安装脚本覆盖）
+# ------------------------------------------------------------------------------
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+
+# shellcheck disable=SC2034
+: "${_omz_use_p10k:=0}"
