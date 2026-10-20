@@ -160,6 +160,17 @@ fi
 # ------------------------------------------------------------------------------
 # 6. 杂项补丁
 # ------------------------------------------------------------------------------
+
+# zsh-syntax-highlighting 默认会给「合法路径 / cd 的目录参数」加下划线，
+# 观感上像一条横线。这里去掉下划线（保留 cd 本身的绿色）。
+# 想改成颜色提示而不是去掉，可把 'none' 换成 'fg=cyan' 之类。
+if (( ${+ZSH_HIGHLIGHT_STYLES} )); then
+  ZSH_HIGHLIGHT_STYLES[path]='none'
+  ZSH_HIGHLIGHT_STYLES[path_prefix]='none'
+  ZSH_HIGHLIGHT_STYLES[autodirectory]='fg=green'
+  ZSH_HIGHLIGHT_STYLES[precommand]='fg=green'
+fi
+
 # 清理可能存在的旧 alias 冲突（历史遗留问题）
 unalias -m 'h' 2>/dev/null
 

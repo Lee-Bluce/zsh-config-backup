@@ -156,6 +156,14 @@ bash uninstall.sh --restore-shell    # 默认 shell 改回 bash
 **精简容器里没有 `sudo`、装不了包？**
 用 `--skip-packages`，自己保证 `zsh` 和 `git` 存在（Alpine：`apk add zsh git curl`；完全没有 git 时脚本会退回 tarball 下载）。
 
+**输入路径时下面有条横线？**
+那是 `zsh-syntax-highlighting` 给"合法路径"加的默认下划线，配置里已经关掉了（`path` / `path_prefix` / `autodirectory` / `precommand`）。想改回来或换成颜色，在 `~/.zshrc.local` 里覆盖：
+
+```zsh
+ZSH_HIGHLIGHT_STYLES[path]='underline'     # 恢复下划线
+ZSH_HIGHLIGHT_STYLES[path]='fg=cyan'       # 改成颜色提示
+```
+
 **中文显示/输入异常？**
 `~/.zshrc` 只在系统本身有 `en_US.UTF-8` 时才设它，否则退到 `C.UTF-8`。需要 `zh_CN.UTF-8` 就在 `~/.zshrc.local` 里覆盖。
 
