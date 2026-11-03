@@ -164,6 +164,19 @@ ZSH_HIGHLIGHT_STYLES[path]='underline'     # 恢复下划线
 ZSH_HIGHLIGHT_STYLES[path]='fg=cyan'       # 改成颜色提示
 ```
 
+**新装了命令，能执行但 Tab 补全不出来（要手动 `rehash` 才行）？**
+已自动处理：配置在每个提示符出现前执行一次 `rehash`，刷新 zsh 的 `$commands` 缓存表（补全用的就是这张表）。实测每次约 13µs，无感。
+
+如果仍然补不出来，按顺序排查：
+
+```bash
+rehash                      # 手动刷一次
+echo $PATH                  # 确认那个目录在 PATH 里
+ls -l /usr/local/bin/xxx    # 确认有可执行权限（chmod +x）
+```
+
+> 注：刚 `chmod +x` 或刚新增文件时不用管，敲下一条命令、提示符刷新后就能补全了。
+
 **中文显示/输入异常？**
 `~/.zshrc` 只在系统本身有 `en_US.UTF-8` 时才设它，否则退到 `C.UTF-8`。需要 `zh_CN.UTF-8` 就在 `~/.zshrc.local` 里覆盖。
 
